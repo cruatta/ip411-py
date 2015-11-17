@@ -1,7 +1,8 @@
 from drawille import Canvas, getTerminalSize, line
 import json
 import requests
-
+import sys
+import re
 
 class MapCanvas(object):
     def __init__(self):
@@ -49,18 +50,39 @@ class MapCanvas(object):
             self.canvas.set(x,y)
 
 def main():
+    if len(sys.argv) < 2:
+        r = requests.get('http://ipinfo.io/json')
+    else:
+        r = requests.get('http://ipinfo.io/{0}/json'.format(sys.argv[1]))
+
+    if not r.ok:
+        exit(1)
+
+    response = json.loads(r.text)
+    loc = re.match("(.*),(.*)", response['loc'])
+    ip_lat = float(loc.group(1))
+    ip_lon = float(loc.group(2))
+    city = response['city']
+    region = response['region']
+    country = response['country']
+    org = response['org']
+
     world_map = MapCanvas()
     
     with open('world.json') as f:
         world = json.load(f)
     for shape in world['shapes']:
         for index, point in list(enumerate(shape)):
-            lat1 = float(point['lat'])
-            lon1 = float(point['lon'])
-            lat2 = float(shape[index - 1]['lat'])
-            lon2 = float(shape[index - 1]['lon'])
-            world_map.plot(lat1, lon1)
-            world_map.line(lat1, lon1, lat2, lon2)
+            lat_a = float(point['lat'])
+            lon_a = float(point['lon'])
+            lat_b = float(shape[index - 1]['lat'])
+            lon_b = float(shape[index - 1]['lon'])
+            world_map.plot(lat_a, lon_a)
+            world_map.line(lat_a, lon_a, lat_b, lon_b)
+    world_map.plot(ip_lat, ip_lon, 'X')
+    world_map.canvas.set_text(0, world_map.canvas_height-8, 'Latitude/Longitude: {0},{1}'.format(ip_lat, ip_lon))
+    world_map.canvas.set_text(0, world_map.canvas_height-4, '{0}'.format(org))
+    world_map.canvas.set_text(0, world_map.canvas_height, '{0}, {1}, {2}'.format(city, region, country))
     print(world_map.canvas.frame())
 
 if __name__ == "__main__":
