@@ -1,10 +1,9 @@
-from drawille import Canvas, getTerminalSize
+from drawille import Canvas, getTerminalSize, line
 import json
 import requests
 
-from pprint import pprint
 
-class MapCanvas():
+class MapCanvas(object):
     def __init__(self):
         self.canvas = Canvas()
         w, h = getTerminalSize()
@@ -24,7 +23,6 @@ class MapCanvas():
 
     def get_y(self, latitude):
         adjusted_lat = latitude + 90
-        # print(adjusted_lat)
 
         if adjusted_lat == 0:
             return self.canvas_height
@@ -42,19 +40,28 @@ class MapCanvas():
         else:
             self.canvas.set_text(x, y, char)
 
-# Be lazy
+    def line(self, lat1, lon1, lat2, lon2):
+        x1 = self.get_x(lon1)
+        x2 = self.get_x(lon2)
+        y1 = self.get_y(lat1)
+        y2 = self.get_y(lat2)
+        for x,y in line(x1, y1, x2, y2):
+            self.canvas.set(x,y)
+
 def main():
-    map = MapCanvas()
-    map.canvas.set_text(map.canvas_width, map.canvas_height, 'x')
+    world_map = MapCanvas()
     
     with open('world.json') as f:
         world = json.load(f)
     for shape in world['shapes']:
-        for point in shape:
-            lat = float(point['lat'])
-            lon = float(point['lon'])
-            map.plot(lat, lon)
-    print(map.canvas.frame())
+        for index, point in list(enumerate(shape)):
+            lat1 = float(point['lat'])
+            lon1 = float(point['lon'])
+            lat2 = float(shape[index - 1]['lat'])
+            lon2 = float(shape[index - 1]['lon'])
+            world_map.plot(lat1, lon1)
+            world_map.line(lat1, lon1, lat2, lon2)
+    print(world_map.canvas.frame())
 
 if __name__ == "__main__":
     main()
