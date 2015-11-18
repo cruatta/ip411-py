@@ -1,6 +1,9 @@
 import json
-import requests
 import re
+import sys
+import os
+
+import requests
 from drawille import Canvas, getTerminalSize, line
 
 class MapCanvas(object):
@@ -52,7 +55,7 @@ class WorldMap(MapCanvas):
     def __init__(self):
         super(WorldMap, self).__init__()
 
-        with open('world.json') as f:
+        with open(os.path.join(sys.prefix, 'share', 'ip411', 'world.json'), ) as f:
             world = json.load(f)
         for shape in world['shapes']:
             for index, point in list(enumerate(shape)):
