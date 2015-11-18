@@ -48,11 +48,11 @@ class MapCanvas(object):
         for x,y in line(x1, y1, x2, y2):
             self.canvas.set(x,y)
 
-class WorldMapCanvas(MapCanvas):
-    def __init__(self, json_file):
-        super(WorldMapCanvas, self).__init__()
+class WorldMap(MapCanvas):
+    def __init__(self):
+        super(WorldMap, self).__init__()
 
-        with open(json_file) as f:
+        with open('world.json') as f:
             world = json.load(f)
         for shape in world['shapes']:
             for index, point in list(enumerate(shape)):
@@ -87,23 +87,3 @@ def ip_info(ip=None):
     response['lon'] = lon
 
     return response
-
-
-def main():
-    world_map = WorldMapCanvas('world.json')
-
-    r = ip_info()
-
-    city = r['city'] if 'city' in r else ''
-    region = r['region'] if 'region' in r else ''
-    country = r['country'] if 'country' in r else ''
-    org = r['org'] if 'org' in r else ''
-
-    world_map.plot(r['lat'], r['lon'], 'X')
-    world_map.canvas.set_text(0, world_map.canvas_height-8, 'Latitude/Longitude: {0},{1}'.format(r['lat'], r['lon']))
-    world_map.canvas.set_text(0, world_map.canvas_height-4, '{0}'.format(org))
-    world_map.canvas.set_text(0, world_map.canvas_height, '{0}, {1}, {2}'.format(city, region, country))
-    print(world_map.canvas.frame())
-
-if __name__ == "__main__":
-    main()
