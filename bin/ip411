@@ -3,7 +3,7 @@ import sys
 from ip411 import WorldMap, ip_info
 
 def main():
-    if sys.argv < 2:
+    if len(sys.argv) < 2:
         r = ip_info()
     else:
         r = ip_info(sys.argv[1])
