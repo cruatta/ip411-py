@@ -1,0 +1,26 @@
+#!/usr/bin/python
+import sys
+from ip411 import WorldMap, ip_info
+
+def main():
+    if sys.argv < 2:
+        r = ip_info()
+    else:
+        r = ip_info(sys.argv[1])
+
+    world_map = WorldMap()
+
+    city = r['city'] if 'city' in r else ''
+    region = r['region'] if 'region' in r else ''
+    country = r['country'] if 'country' in r else ''
+    org = r['org'] if 'org' in r else ''
+
+    world_map.plot(r['lat'], r['lon'], 'X')
+    world_map.canvas.set_text(0, world_map.canvas_height-8, 'Latitude/Longitude: {0},{1}'.format(r['lat'], r['lon']))
+    world_map.canvas.set_text(0, world_map.canvas_height-4, '{0}'.format(org))
+    world_map.canvas.set_text(0, world_map.canvas_height, '{0}, {1}, {2}'.format(city, region, country))
+    print(world_map.canvas.frame())
+
+if __name__ == "__main__":
+    main()
+
