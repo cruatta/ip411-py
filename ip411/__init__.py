@@ -1,8 +1,10 @@
-from drawille import Canvas, getTerminalSize, line
 import json
-import requests
-import sys
 import re
+import sys
+import os
+
+import requests
+from drawille import Canvas, getTerminalSize, line
 
 class MapCanvas(object):
     def __init__(self):
@@ -49,41 +51,42 @@ class MapCanvas(object):
         for x,y in line(x1, y1, x2, y2):
             self.canvas.set(x,y)
 
-def main():
-    if len(sys.argv) < 2:
+class WorldMap(MapCanvas):
+    def __init__(self):
+        super(WorldMap, self).__init__()
+
+        with open(os.path.join(sys.prefix, 'share', 'ip411', 'world.json'), ) as f:
+            world = json.load(f)
+        for shape in world['shapes']:
+            for index, point in list(enumerate(shape)):
+                lat_a = float(point['lat'])
+                lon_a = float(point['lon'])
+                lat_b = float(shape[index - 1]['lat'])
+                lon_b = float(shape[index - 1]['lon'])
+                self.plot(lat_a, lon_a)
+                self.line(lat_a, lon_a, lat_b, lon_b)
+
+def ip_info(ip=None):
+
+    if ip is None:
         r = requests.get('http://ipinfo.io/json')
     else:
         r = requests.get('http://ipinfo.io/{0}/json'.format(sys.argv[1]))
 
     if not r.ok:
-        exit(1)
+        raise Exception('Invalid Response from ipinfo.io')
 
     response = json.loads(r.text)
+
+    try:
+        assert 'loc' in response
+    except AssertionError as e:
+        raise Exception('Response from ipinfo.io contains no loc')
+
     loc = re.match("(.*),(.*)", response['loc'])
-    ip_lat = float(loc.group(1))
-    ip_lon = float(loc.group(2))
-    city = response['city']
-    region = response['region']
-    country = response['country']
-    org = response['org']
+    lat = float(loc.group(1))
+    lon = float(loc.group(2))
+    response['lat'] = lat
+    response['lon'] = lon
 
-    world_map = MapCanvas()
-    
-    with open('world.json') as f:
-        world = json.load(f)
-    for shape in world['shapes']:
-        for index, point in list(enumerate(shape)):
-            lat_a = float(point['lat'])
-            lon_a = float(point['lon'])
-            lat_b = float(shape[index - 1]['lat'])
-            lon_b = float(shape[index - 1]['lon'])
-            world_map.plot(lat_a, lon_a)
-            world_map.line(lat_a, lon_a, lat_b, lon_b)
-    world_map.plot(ip_lat, ip_lon, 'X')
-    world_map.canvas.set_text(0, world_map.canvas_height-8, 'Latitude/Longitude: {0},{1}'.format(ip_lat, ip_lon))
-    world_map.canvas.set_text(0, world_map.canvas_height-4, '{0}'.format(org))
-    world_map.canvas.set_text(0, world_map.canvas_height, '{0}, {1}, {2}'.format(city, region, country))
-    print(world_map.canvas.frame())
-
-if __name__ == "__main__":
-    main()
+    return response
