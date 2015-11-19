@@ -6,6 +6,6 @@ setup(name='ip411',
     author='Cameron Ruatta',
     packages=['ip411'],
     scripts=['bin/ip411'],
-    data_files=[('share/ip411', ['ip411/world.json'])],
+    data_files=[('lib/ip411', ['lib/world.json'])],
     package_data={'ip411': ['README.md', 'LICENSE']}
 )
